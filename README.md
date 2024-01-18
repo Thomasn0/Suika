@@ -15,7 +15,7 @@ A Django application of the popular video game Suika.
 2. Revamping the scoring system based on the real game
 3. Next fruit to drop
 
-## Recent Updates
+## Recent Updates - 1/18/2024
 
 1. Testing losing condition
 2. Restarting the game once the player loses
