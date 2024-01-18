@@ -20,18 +20,18 @@ var render = Render.create({
     options: {
         wireframes: false,
         background: "#F7F4C8",
-        width: 620,
+        width: 500,
         height: 850,
     }
 });
 
-// This walls are the yellow border around the playzone
+// The walls are the yellow border around the playzone
 const leftWall = Bodies.rectangle(15, 395, 30, 790, {
     isStatic: true,
     render: { fillStyle: "#E6B143" }
 });
 
-const rightWall = Bodies.rectangle(605, 395, 30, 790, {
+const rightWall = Bodies.rectangle(485, 395, 30, 790, {
     isStatic: true,
     render: { fillStyle: "#E6B143" }
 });
@@ -61,7 +61,8 @@ let currentFruit = null;
 let disableAction = false;
 let interval = null;
 let score = 0;
-
+let highscore = 0;
+// Spawns a random fruit above the topLine
 function addFruit() {
     const index = Math.floor(Math.random() * 5);
     const fruit = FRUITS[index];
@@ -78,10 +79,12 @@ function addFruit() {
     currentFruit = fruit;
 
     World.add(world, body);
-    checkEntitiesTouchingTopLine();
 
 }
 
+// Uses the keys "A", "S", "D"
+// Pressing A and D moves the fruit left or right
+// Pressing S drops the fruit
 window.onkeydown = (event) => {
     if (disableAction){
         return;
@@ -105,7 +108,7 @@ window.onkeydown = (event) => {
             if (interval)
                 return;
             interval = setInterval(() => { 
-                if(currentBody.position.x + currentFruit.radius < 590)
+                if(currentBody.position.x + currentFruit.radius < 470)
                 Body.setPosition(currentBody,{
                     x: currentBody.position.x + 1,
                     y: currentBody.position.y,
@@ -120,6 +123,7 @@ window.onkeydown = (event) => {
             disableAction = true;
             
             setTimeout(() =>{ 
+                checkEntitiesTouchingTopLine();
                 addFruit(); 
                 disableAction = false;
             }, 1000);
@@ -169,20 +173,19 @@ Events.on(engine, "collisionStart", (event) => {
         }
     });
 });
-function checkEntitiesTouchingTopLine() {
-    // Introduce a delay (e.g., 1000 milliseconds) before checking
-    setTimeout(() => {
-        const entitiesTouchingTopLine = world.bodies.filter(body => (
-            !body.isSleeping &&
-            (body.position.y - body.circleRadius) < topLine.position.y
-        ));
 
-        if (entitiesTouchingTopLine.length > 0) {
-            // Display an alert when any entity touches the topLine
-            alert("Game over: An entity touched the topLine");
-            // Optionally, you can add more logic here, such as resetting the game.
-        }
-    }, 1000); // Adjust the delay as needed (in milliseconds)
+function checkEntitiesTouchingTopLine() {
+
+    const entitiesTouchingTopLine = world.bodies.filter(body => (
+        !body.isSleeping &&
+        (body.position.y - body.circleRadius) < topLine.position.y
+    ));
+
+    if (entitiesTouchingTopLine.length > 0) {
+        alert("Game over: An entity touched the topLine");
+        resetGame();
+    }
+
 }
 function updateScore(){
     document.getElementById('score').textContent = score;
@@ -192,6 +195,54 @@ function increaseScore(index){
     score = score + FRUITS[index].valueCombine;
     updateScore();
 }
+
+// Function to reset the game
+function resetGame() {
+
+    if (highscore < score){
+        highscore = score;
+        document.getElementById('highscore').textContent = highscore;
+    }
+
+    // Remove all bodies from the world
+    Matter.World.clear(world, false);
+
+    const leftWall = Bodies.rectangle(15, 395, 30, 790, {
+        isStatic: true,
+        render: { fillStyle: "#E6B143" }
+    });
+    
+    const rightWall = Bodies.rectangle(485, 395, 30, 790, {
+        isStatic: true,
+        render: { fillStyle: "#E6B143" }
+    });
+    
+    const ground = Bodies.rectangle(310, 820, 620, 60, {
+        isStatic: true,
+        render: { fillStyle: "#E6B143" }
+    });
+    
+    const topLine = Bodies.rectangle(310, 150, 620, 2, {
+        name: "topLine",
+        isStatic: true,
+        isSensor: true,
+        render: { fillStyle: "#E6B143" }
+    });
+
+    Matter.World.add(world, [leftWall, rightWall, ground, topLine]);
+
+    // Reset other game variables
+    currentBody = null;
+    currentFruit = null;
+    disableAction = false;
+    interval = null;
+    score = 0;
+
+    // Update the score display
+    updateScore();
+
+}
+
 
 updateScore();
 addFruit();
